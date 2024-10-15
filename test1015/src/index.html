@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mouse Tracker</title>
+    <style>
+        body {
+            height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+        .cursor {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            border-radius: 50%;
+            pointer-events: none; /* Prevent mouse events on the cursor */
+        }
+    </style>
+</head>
+<body>
+    <div id="cursor" class="cursor"></div>
+    <script>
+        const cursor = document.getElementById('cursor');
+        const ws = new WebSocket(`ws://${window.location.host}`);
+
+        document.addEventListener('mousemove', (event) => {
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+
+            // Update cursor position
+            cursor.style.left = `${mouseX}px`;
+            cursor.style.top = `${mouseY}px`;
+
+            // Send mouse position to server
+            ws.send(JSON.stringify({ x: mouseX, y: mouseY }));
+        });
+
+        ws.onmessage = (event) => {
+            const { x, y } = JSON.parse(event.data);
+            const cursorClone = document.createElement('div');
+            cursorClone.className = 'cursor';
+            cursorClone.style.left = `${x}px`;
+            cursorClone.style.top = `${y}px`;
+            document.body.appendChild(cursorClone);
+
+            // Remove cursorClone after a short duration
+            setTimeout(() => {
+                cursorClone.remove();
+            }, 1000); // Adjust duration as needed
+        };
+    </script>
+</body>
+</html>
